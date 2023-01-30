@@ -16,5 +16,4 @@ p.loadSDF("world.sdf")
 while(True):
     p.stepSimulation()
     t.sleep(1/100)
-    print(i)
 p.disconnect()
