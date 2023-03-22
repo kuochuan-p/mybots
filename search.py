@@ -1,11 +1,14 @@
 import os
-from hillclimber import HILL_CLIMBER
+from parallelHillClimber import PARALLEL_HILL_CLIMBER
+
+os.system("rm brain0.nndf brain1.nndf")
+os.system("rm fitness0.txt fitness1.txt") 
 
 
-hc = HILL_CLIMBER()
-hc.Show_Best()
+phc = PARALLEL_HILL_CLIMBER()
+phc.Show_Best()
+
 
 # for i in range(0,5):
 #     os.system("python3 generate.py")
 #     os.system("python3 simulate.py")
-
