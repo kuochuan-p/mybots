@@ -22,7 +22,6 @@ class PARALLEL_HILL_CLIMBER:
         self.Spawn()
         self.Mutate()
         self.Evaluate(self.children)
-        self.Print()
         self.Select()
 
     def Spawn(self):
@@ -57,5 +56,4 @@ class PARALLEL_HILL_CLIMBER:
             if self.parents[i].fitness < min:
                 min = self.parents[i].fitness
                 opt = self.parents[i]
-        print("BEST SOLUTION FITNESS:", opt.fitness)
         opt.Start_Simulation("GUI")
