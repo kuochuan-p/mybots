@@ -106,6 +106,24 @@ class SOLUTION:
         neuronName +=1
         pyrosim.Send_Sensor_Neuron(name = neuronName , linkName = "FrontLeftLower")
         neuronName +=1
+
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "Torso_BackRightLeg")
+        neuronName +=1
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "Torso_BackLeftLeg")
+        neuronName +=1
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "Torso_FrontRightLeg")
+        neuronName +=1
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "Torso_FrontLeftLeg")
+        neuronName +=1
+
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "BackRightLeg_BackRightLower")
+        neuronName +=1
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "BackLeftLeg_BackLeftLower")
+        neuronName +=1
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "FrontRightLeg_FrontRightLower")
+        neuronName +=1
+        pyrosim.Send_Motor_Neuron( name = neuronName , jointName = "FrontLeftLeg_FrontLeftLower")
+        neuronName +=1
         
         for currentRow in range(0,c.numSensorNeurons):
             for currentColumn in range(0,c.numMotorNeurons):
