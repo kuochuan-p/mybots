@@ -43,12 +43,13 @@ class ROBOT:
     def Think(self):
         self.nn.Update()
     
-    def Get_Fitness(self):
-        stateOfLinkZero = p.getLinkState(self.robotId,0)
-        positionOfLinkZero = stateOfLinkZero[0]
-        xPositionOfLinkZero = positionOfLinkZero[0]
+    def Get_Fitness(self):        
+        basePositionAndOrientation = p.getBasePositionAndOrientation(self.robotId)
+        basePosition = basePositionAndOrientation[0]
+        xPosition = basePosition[0]
+
         f = open("tmp"+str(self.solutionId)+".txt", "w")
-        f.write(str(xPositionOfLinkZero))
+        f.write(str(xPosition))
         f.close()
         os.system("mv tmp"+self.solutionId+".txt fitness"+self.solutionId+".txt")
 
