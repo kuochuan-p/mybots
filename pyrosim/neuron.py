@@ -20,6 +20,11 @@ class NEURON:
 
         self.Set_Value(0.0)
 
+        self.Is_CPG = False
+
+    def Make_CPG(self):
+        self.Is_CPG = True
+
     def Add_To_Value( self, value ):
 
         self.Set_Value( self.Get_Value() + value )
@@ -52,8 +57,11 @@ class NEURON:
 
         return self.type == c.MOTOR_NEURON
 
-    def Update_Sensor_Neuron(self):
-        self.Set_Value(pyrosim.Get_Touch_Sensor_Value_For_Link(self.Get_Link_Name()))
+    def Update_Sensor_Neuron(self, CPG_Val):
+        if(self.Get_Link_Name() == "CPG"):
+            self.Set_Value(CPG_Val)
+        else:
+            self.Set_Value(pyrosim.Get_Touch_Sensor_Value_For_Link(self.Get_Link_Name()))
     
     def Allow_Presynaptic_Neuron_To_Influence_Me(self, weight, value):
         self.Add_To_Value(weight*value)
@@ -135,6 +143,10 @@ class NEURON:
             splitLine = line.split('"')
 
             self.linkName = splitLine[5]
+
+            if (self.linkName == "CPG"):
+                self.Make_CPG()
+
 
     def Threshold(self):
 

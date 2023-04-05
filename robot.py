@@ -4,6 +4,7 @@ import pyrosim.pyrosim as pyrosim
 import constants as c
 from pyrosim.neuralNetwork import NEURAL_NETWORK
 import os
+import math
 
 
 from motor import MOTOR
@@ -40,8 +41,9 @@ class ROBOT:
                 desiredAngle = self.nn.Get_Value_Of(neuronName)*c.motorJointRange
                 self.motors[jointName].Set_Value(self.robotId, desiredAngle)
                 
-    def Think(self):
-        self.nn.Update()
+    def Think(self, i):
+        CPG_Val = math.sin((c.PI/100)*i)*2*c.PI
+        self.nn.Update(CPG_Val)
     
     def Get_Fitness(self):        
         basePositionAndOrientation = p.getBasePositionAndOrientation(self.robotId)

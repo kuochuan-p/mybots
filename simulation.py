@@ -32,7 +32,7 @@ class SIMULATION:
             p.stepSimulation()
 
             self.robot.Sense(i)
-            self.robot.Think()
+            self.robot.Think(i)
             self.robot.Act(i)
             if(self.mode != "DIRECT"):
                 t.sleep(1/100)
