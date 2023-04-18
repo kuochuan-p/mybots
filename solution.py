@@ -5,13 +5,23 @@ import random
 import copy
 import time
 import constants as c
+import math
 
 
 class SOLUTION:
 
-    def __init__(self, ident) -> None:
+
+    def __init__(self, ident, weights=None) -> None:
         self.myID = ident
-        self.Create_Robot()
+
+        if(weights):
+            self.hiddenWeights = weights["Hidden"]
+            self.cpgWeights = weights["CPG"]
+            self.motorWeights = weights["Motor"]
+        
+        self.Create_Robot(weights)
+
+
     
     def Set_ID(self, ident):
         self.myID = ident
@@ -44,11 +54,50 @@ class SOLUTION:
         os.system("rm fitness"+str(self.myID)+".txt")
 
     def Mutate(self):
-        randRow = random.randint(0,self.numSensors-1)
-        randCol = random.randint(0,self.numMotors-1)
+        flip = random.randint(0,2)
 
-        self.weights[randRow][randCol] = random.random()*2-1
+        if (flip == 0):
+            randRow = random.randint(0,self.numSensors-1)
+            randCol = random.randint(0,self.numHidden-1)
 
+            self.hiddenWeights[randRow][randCol] = random.random()*2-1
+        elif(flip == 1):
+            randRow = random.randint(0,self.numHidden-1)
+            randCol = random.randint(0,self.numMotors-1)
+
+            self.motorWeights[randRow][randCol] = random.random()*2-1
+        else:
+            randRow = random.randint(0,self.numCPG-1)
+            randCol = random.randint(0,self.numHidden-1)
+
+            self.cpgWeights[randRow][randCol] = random.random()*2-1
+
+    def Save(self):
+        f = open("opt"+str(self.myID)+".txt", "w")
+        f.write("Hidden weights:\n")
+        for currentRow in range(0,self.numSensors):
+            for currentColumn in range(0,self.numHidden):
+                f.write(str(self.hiddenWeights[currentRow][currentColumn]))
+                f.write(", ")
+            f.write("\n")
+
+        f.write("CPG weights:\n")
+        for currentRow in range(0,self.numCPG):
+            for currentColumn in range(0,self.numHidden):
+                f.write(str(self.cpgWeights[currentRow][currentColumn]))
+                f.write(", ")
+            f.write("\n") 
+
+        f.write("Motor weights:\n")
+        for currentRow in range(0,self.numHidden):
+            for currentColumn in range(0,self.numMotors):
+                f.write(str(self.motorWeights[currentRow][currentColumn]))
+                f.write(", ")
+            f.write("\n")
+        
+        f.close()
+
+           
 
     def Create_world(self):
 
@@ -60,15 +109,15 @@ class SOLUTION:
     def Generate_Body(self):
 
         pyrosim.Start_URDF("body.urdf")
-        length, width, height = 3,1,1
+        length, width, height = 3,2,.5
         x,y,z = 0,0,2.5
         
         pyrosim.Send_Cube(name="Torso", pos=[x,y,z] , size=[length,width,height])
 
         #back legs
-        pyrosim.Send_Joint( name = "Torso_BackRightLeg" , parent= "Torso" , child = "BackRightLeg" , type = "revolute", position = [length/2,width/2,z-.5], jointAxis = "0 1 0")
+        pyrosim.Send_Joint( name = "Torso_BackRightLeg" , parent= "Torso" , child = "BackRightLeg" , type = "revolute", position = [length/2,width/2,z-.5*(height)], jointAxis = "0 1 0")
         pyrosim.Send_Cube(name="BackRightLeg", pos=[0,0,-.5] , size=[.2,0.2,1])
-        pyrosim.Send_Joint( name = "Torso_BackLeftLeg" , parent= "Torso" , child = "BackLeftLeg" , type = "revolute", position = [length/2,-width/2,z-.5], jointAxis = "0 1 0")
+        pyrosim.Send_Joint( name = "Torso_BackLeftLeg" , parent= "Torso" , child = "BackLeftLeg" , type = "revolute", position = [length/2,-width/2,z-.5*(height)], jointAxis = "0 1 0")
         pyrosim.Send_Cube(name="BackLeftLeg", pos=[0,0,-.5] , size=[.2,0.2,1])
 
         pyrosim.Send_Joint( name = "BackRightLeg_BackRightLower" , parent= "BackRightLeg" , child = "BackRightLower" , type = "revolute", position = [0,0,-1], jointAxis = "0 1 0")
@@ -77,9 +126,9 @@ class SOLUTION:
         pyrosim.Send_Cube(name="BackLeftLower", pos=[0,0,-.5] , size=[0.2,0.2,1])
 
         #front legs
-        pyrosim.Send_Joint( name = "Torso_FrontRightLeg" , parent= "Torso" , child = "FrontRightLeg" , type = "revolute", position = [-length/2,.5,z-.5], jointAxis = "0 1 0")
+        pyrosim.Send_Joint( name = "Torso_FrontRightLeg" , parent= "Torso" , child = "FrontRightLeg" , type = "revolute", position = [-length/2,width/2,z-.5*(height)], jointAxis = "0 1 0")
         pyrosim.Send_Cube(name="FrontRightLeg", pos=[0,0,-.5] , size=[.2,0.2,1])
-        pyrosim.Send_Joint( name = "Torso_FrontLeftLeg" , parent= "Torso" , child = "FrontLeftLeg" , type = "revolute", position = [-length/2,-.5,z-.5], jointAxis = "0 1 0")
+        pyrosim.Send_Joint( name = "Torso_FrontLeftLeg" , parent= "Torso" , child = "FrontLeftLeg" , type = "revolute", position = [-length/2,-width/2,z-.5*(height)], jointAxis = "0 1 0")
         pyrosim.Send_Cube(name="FrontLeftLeg", pos=[0,0,-.5] , size=[.2,0.2,1])
 
         pyrosim.Send_Joint( name = "FrontRightLeg_FrontRightLower" , parent= "FrontRightLeg" , child = "FrontRightLower" , type = "revolute", position = [0,0,-1], jointAxis = "0 1 0")
@@ -91,13 +140,15 @@ class SOLUTION:
 
         pyrosim.End()
 
-    def Generate_Brain(self):
+    def Generate_Brain(self, weights=None):
 
         pyrosim.Start_URDF("brain"+str(self.myID)+".nndf")
 
         self.numNeurons = 0
         self.numSensors = 0
+        self.numHidden = 0
         self.numMotors = 0
+        self.numCPG = 0
 
         #SENSORS
         pyrosim.Send_Sensor_Neuron(name = self.numNeurons , linkName = "BackRightLower")
@@ -112,11 +163,52 @@ class SOLUTION:
         pyrosim.Send_Sensor_Neuron(name = self.numNeurons , linkName = "FrontLeftLower")
         self.numNeurons +=1
         self.numSensors +=1
+        
+
+        
+        #HIDDEN
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
+
+        if(not weights):
+            self.hiddenWeights = (np.random.rand(self.numSensors, self.numHidden))*2-1
+
+        #add synapses from sensors to hidden
+        for currentRow in range(0,self.numSensors):
+            for currentColumn in range(0,self.numHidden):
+                pyrosim.Send_Synapse( sourceNeuronName = currentRow  , targetNeuronName = currentColumn+self.numSensors , weight = self.hiddenWeights[currentRow][currentColumn] )
+
         #CPG
         pyrosim.Send_Sensor_Neuron(name = self.numNeurons , linkName = "CPG")
         self.numNeurons +=1
-        self.numSensors +=1
+        self.numCPG +=1
 
+        if(not weights):
+            self.cpgWeights = (np.random.rand(self.numCPG, self.numHidden))*2-1
+        
+        for currentRow in range(0,self.numCPG):
+            for currentColumn in range(0,self.numHidden):
+                pyrosim.Send_Synapse( sourceNeuronName = currentRow + self.numSensors + self.numHidden , targetNeuronName = currentColumn+self.numSensors , weight = self.cpgWeights[currentRow][currentColumn] )
+  
         #MOTORS
         pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Torso_BackRightLeg")
         self.numNeurons +=1
@@ -143,14 +235,19 @@ class SOLUTION:
         self.numNeurons +=1
         self.numMotors +=1
 
-        self.weights = (np.random.rand(self.numSensors, self.numMotors))*2-1
+        if(not weights):
+            self.motorWeights = (np.random.rand(self.numHidden, self.numMotors))*2-1
 
-        for currentRow in range(0,self.numSensors):
+        for currentRow in range(0,self.numHidden):
             for currentColumn in range(0,self.numMotors):
-                pyrosim.Send_Synapse( sourceNeuronName = currentRow , targetNeuronName = currentColumn+self.numMotors , weight = self.weights[currentRow][currentColumn] )
+                pyrosim.Send_Synapse( sourceNeuronName = currentRow + self.numSensors + self.numCPG, targetNeuronName = currentColumn+self.numSensors+self.numHidden +self.numCPG, weight = self.motorWeights[currentRow][currentColumn] )
+
+        
+
+
 
         pyrosim.End()
 
-    def Create_Robot(self):
-        self.Generate_Brain()
+    def Create_Robot(self, weights=None):
+        self.Generate_Brain(weights)
         self.Generate_Body()

@@ -14,6 +14,11 @@ class ROBOT:
     def __init__(self, solutionID):  
         self.solutionId = solutionID      
         self.robotId = p.loadURDF("body.urdf")
+
+        self.airborn = False
+        self.jumps = 0
+        self.timeAirborn = 0
+
         self.nn = NEURAL_NETWORK("brain"+str(solutionID)+".nndf")
         os.system("rm brain"+str(solutionID)+".nndf")
         pyrosim.Prepare_To_Simulate(self.robotId)
@@ -23,11 +28,26 @@ class ROBOT:
     def Prepare_To_Sense(self):
             self.sensors = {}
             for linkName in pyrosim.linkNamesToIndices:
-                self.sensors[linkName] = SENSOR(linkName)
+                if (linkName[-5:] == "Lower"):
+                    self.sensors[linkName] = SENSOR(linkName)
 
     def Sense(self, i):
+        numOff = 0
         for s in self.sensors:
-            self.sensors[s].Get_Value(i)
+            if (self.sensors[s].Get_Value(i) == -1):
+                 numOff +=1
+
+        if (numOff == 4):
+             self.timeAirborn +=1
+                
+        if (numOff == 4 and (not self.airborn)):
+            self.airborn = True
+            self.jumps +=1
+
+        if (numOff == 0 and self.airborn):
+            self.airborn = False
+            
+            
     
     def Prepare_To_Act(self):
         self.motors = {}
@@ -36,10 +56,11 @@ class ROBOT:
     
     def Act(self, i):
         for neuronName in self.nn.Get_Neuron_Names():
-             if self.nn.Is_Motor_Neuron(neuronName):
+             if (self.nn.Is_Motor_Neuron(neuronName)):
                 jointName = self.nn.Get_Motor_Neurons_Joint(neuronName)
-                desiredAngle = self.nn.Get_Value_Of(neuronName)*c.motorJointRange
-                self.motors[jointName].Set_Value(self.robotId, desiredAngle)
+                if (jointName != "Hidden"):
+                    desiredAngle = self.nn.Get_Value_Of(neuronName)*c.motorJointRange
+                    self.motors[jointName].Set_Value(self.robotId, desiredAngle)
                 
     def Think(self, i):
         CPG_Val = math.sin((c.PI/100)*i)*2*c.PI
@@ -50,8 +71,10 @@ class ROBOT:
         basePosition = basePositionAndOrientation[0]
         xPosition = basePosition[0]
 
+        fitness = self.timeAirborn
+
         f = open("tmp"+str(self.solutionId)+".txt", "w")
-        f.write(str(xPosition))
+        f.write(str(fitness))
         f.close()
         os.system("mv tmp"+self.solutionId+".txt fitness"+self.solutionId+".txt")
 

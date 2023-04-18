@@ -8,7 +8,7 @@ import random
 PI = 3.14159265
 GRAVITY = -9.8
 backLegAmplitude, backLegFrequency, backLegPhaseOffset = PI/4, 5, 0
-numberOfGenerations = 20
+numberOfGenerations = 10
 populationSize = 10
 
-motorJointRange = 1
+motorJointRange = .75

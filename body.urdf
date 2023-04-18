@@ -8,7 +8,7 @@
         <visual>
             <origin xyz="0 0 2.5" rpy="0 0 0"/>
             <geometry>
-                <box size="3 1 1" />
+                <box size="3 2 0.5" />
             </geometry>
             <material name="Cyan">
                 <color rgba="0 1.0 1.0 1.0"/>
@@ -17,14 +17,14 @@
         <collision>
             <origin xyz="0 0 2.5" rpy="0 0 0"/>
             <geometry>
-                <box size="3 1 1" />
+                <box size="3 2 0.5" />
             </geometry>
         </collision>
     </link>
     <joint name="Torso_BackRightLeg" type="revolute">
        <parent link="Torso"/>
        <child  link="BackRightLeg"/>
-       <origin rpy="0 0 0" xyz="1.5 0.5 2.0" />
+       <origin rpy="0 0 0" xyz="1.5 1.0 2.25" />
      <axis xyz="0 1 0"/>
        <limit effort="0.0" lower="-3.14159" upper="3.14159" velocity="0.0"/>
     </joint>
@@ -53,7 +53,7 @@
     <joint name="Torso_BackLeftLeg" type="revolute">
        <parent link="Torso"/>
        <child  link="BackLeftLeg"/>
-       <origin rpy="0 0 0" xyz="1.5 -0.5 2.0" />
+       <origin rpy="0 0 0" xyz="1.5 -1.0 2.25" />
      <axis xyz="0 1 0"/>
        <limit effort="0.0" lower="-3.14159" upper="3.14159" velocity="0.0"/>
     </joint>
@@ -140,7 +140,7 @@
     <joint name="Torso_FrontRightLeg" type="revolute">
        <parent link="Torso"/>
        <child  link="FrontRightLeg"/>
-       <origin rpy="0 0 0" xyz="-1.5 0.5 2.0" />
+       <origin rpy="0 0 0" xyz="-1.5 1.0 2.25" />
      <axis xyz="0 1 0"/>
        <limit effort="0.0" lower="-3.14159" upper="3.14159" velocity="0.0"/>
     </joint>
@@ -169,7 +169,7 @@
     <joint name="Torso_FrontLeftLeg" type="revolute">
        <parent link="Torso"/>
        <child  link="FrontLeftLeg"/>
-       <origin rpy="0 0 0" xyz="-1.5 -0.5 2.0" />
+       <origin rpy="0 0 0" xyz="-1.5 -1.0 2.25" />
      <axis xyz="0 1 0"/>
        <limit effort="0.0" lower="-3.14159" upper="3.14159" velocity="0.0"/>
     </joint>
