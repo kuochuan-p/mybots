@@ -11,7 +11,8 @@ import math
 class SOLUTION:
 
 
-    def __init__(self, ident, weights=None) -> None:
+    def __init__(self, ident, variant, weights=None, ) -> None:
+        self.variant = variant
         self.myID = ident
 
         if(weights):
@@ -54,11 +55,22 @@ class SOLUTION:
         os.system("rm fitness"+str(self.myID)+".txt")
 
     def Mutate(self):
+        #chose which set of weights to modify
         flip = random.randint(0,2)
 
         if (flip == 0):
-            randRow = random.randint(0,self.numSensors-1)
-            randCol = random.randint(0,self.numHidden-1)
+            if(self.variant):
+                #chose which set of hidden weights to modify(front or back)
+                flip2 = random.randint(0,1)
+                if(flip == 0):
+                    randRow = random.randint(0,self.numSensors/2 - 1)
+                    randCol = random.randint(0,self.numHidden/2-1)
+                else:
+                    randRow = random.randint(self.numSensors/2, self.numSensors- 1)
+                    randCol = random.randint(self.numHidden/2, self.numHidden-1)
+            else:          
+                randRow = random.randint(0,self.numSensors-1)
+                randCol = random.randint(0,self.numHidden-1)
 
             self.hiddenWeights[randRow][randCol] = random.random()*2-1
         elif(flip == 1):
@@ -188,9 +200,20 @@ class SOLUTION:
         pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
         self.numNeurons +=1
         self.numHidden +=1
+        pyrosim.Send_Motor_Neuron( name = self.numNeurons , jointName = "Hidden")
+        self.numNeurons +=1
+        self.numHidden +=1
 
         if(not weights):
             self.hiddenWeights = (np.random.rand(self.numSensors, self.numHidden))*2-1
+        
+        if(self.variant):
+            for backSensorNeuron in range(0,2):
+                for frontHiddenNeuron in range(4,8):
+                    self.hiddenWeights[backSensorNeuron, frontHiddenNeuron] = 0
+            for frontSensorNeuron in range(2,4):
+                for backHiddenNeuron in range(0,4):
+                    self.hiddenWeights[frontSensorNeuron, backHiddenNeuron] = 0
 
         #add synapses from sensors to hidden
         for currentRow in range(0,self.numSensors):

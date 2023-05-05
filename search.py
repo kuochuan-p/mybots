@@ -1,10 +1,23 @@
 import os
 from parallelHillClimber import PARALLEL_HILL_CLIMBER
+from matplotlib import pyplot
+import numpy
 
-os.system("rm brain0.nndf brain1.nndf")
-os.system("rm fitness0.txt fitness1.txt") 
+os.system("rm fitnessValuesConnected.npy fitnessValuesDisconnected.npy")
 
 
-phc = PARALLEL_HILL_CLIMBER()
-phc.Show_Best()
 
+phc1 = PARALLEL_HILL_CLIMBER(False)
+phc1.SaveFitnessValues()
+
+phc2 = PARALLEL_HILL_CLIMBER(True)
+phc2.SaveFitnessValues()
+
+connectValues = numpy.load("fitnessValuesConnected.npy")
+disconnectValues = numpy.load("fitnessValuesDisconnected.npy")
+
+
+pyplot.plot(connectValues[0], label="Fully Connected NN")
+pyplot.plot(disconnectValues[0], label="Partially Disconnected NN")
+pyplot.legend()
+pyplot.show()
